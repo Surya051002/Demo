@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef,useState } from 'react';
 import './App.css';
 import img1 from './static/bg.jpg';
 import axios from 'axios'
@@ -7,6 +7,7 @@ const App = () => {
   const userId = useRef();
   const userEmail = useRef();
   const userPassword = useRef();
+  const [Data,SetData]=useState([]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -18,12 +19,16 @@ const App = () => {
     };
 
     try {
-      await axios.post("http://localhost:3030/rr",userData);
+      await axios.post("http://localhost:3030/rr",userData).catch(()=>{alert("Check Details")});
 
      
     } catch (error) {
       console.error('Error submitting form:', error);
     }
+  }
+  async function fun(){
+    const data=await axios.get("http://localhost:3030/r").then((res)=>res.data[0].username).catch((err)=>console.log(err));
+    SetData(data);
   }
 
   return (
@@ -46,13 +51,6 @@ const App = () => {
             <input ref={userEmail} type="email" name='email' id="email" />
             <label>Email</label>
           </div>
-          <div className="input-box">
-            <span className="icon">
-              <ion-icon name="lock-closed"></ion-icon>
-            </span>
-            <input ref={userPassword} type="password" name='password' id="password" />
-            <label>Password</label>
-          </div>
           {/* ... Rest of your HTML form ... */}
           <div className="remember">
             <label>
@@ -63,12 +61,13 @@ const App = () => {
           <button type="submit" id="login-button">
             Login
           </button>
-          <button type="button" id="register-button">
+          <button type="button" onClick={fun} id="register-button">
             Register
           </button>
           <div className="register">
             <p>Don't have an account? <a href="#">Register</a></p>
           </div>
+          {Data}
         </form>
       </div>
     </section>

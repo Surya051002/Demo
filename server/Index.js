@@ -8,66 +8,47 @@ app.use(express.json());
 mongoose.connect(`mongodb+srv://root:arun476@cluster0.bjpcopw.mongodb.net/LogIn?retryWrites=true&w=majority`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  });
+  }).then(()=>console.log("Connected to MongoDB Atlas")).catch((err)=>console.log('MongoDB Atlas Connection Error:',err));
   
-  // Handle the connection event
-  const db =  mongoose.connection;
-  
-  db.on('error', (error) => {
-    console.error('MongoDB Atlas Connection Error:', error);
-  });
-  
-  db.once('open', () => {
-    console.log('Connected to MongoDB Atlas');
-    // You can start defining your schemas and models here
-  });
 
   const schema=new mongoose.Schema({
     userid:{
       type:String,
+    },
+    Doctor:{
+        type:String
     }
   })
   const p=mongoose.model('User',schema);
-  app.post('/rr',(req,res)=>{
-    console.log("hiii");
-    const {userId,email,password}=req.body;
-    const newuser=new p({
-      userid:userId
-    });
-    newuser.save().then(()=>console.log("Success")).catch((err)=>console.log(err));
-    const data=
-    res.status(200).send();
+  app.post('/rr',async(req,res)=>{
+    
+    const {userId,email}=req.body;
+    try {
+      const updatedUser = await p.findOneAndUpdate(
+        { userid: userId },
+        { $set: { Doctor: email } },
+        { new: true }
+      );
+  
+      if (updatedUser) {
+        console.log('User updated successfully:', updatedUser);
+        res.status(200).json(updatedUser);
+      } else {
+        console.log('User not found.');
+        res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ error: 'Error updating user' });
+    }
   });
+  app.get('/r',(req,res)=>{
+    p.find({}).then( (users, err) => {
+      if (err) {
+        console.error('Error retrieving users:', err);
+        res.status(500).json({ error: 'Error retrieving users' });
+      } else {
+        console.log(users);
+      }});
+  })
   app.listen(3030)
- 
-//   const mongoose = require('mongoose');
-  
-//   // Define a schema
-//   const userSchema = new mongoose.Schema({
-//     username: String,
-//     email: String,
-//   });
-  
-//   // Create a model based on the schema
-//   const User = mongoose.model('User', userSchema);
-  
-//   // Usage example:
-//   const newUser = new User({
-//     username: 'john_doe',
-//     email: 'john@example.com',
-//   });
-  
-//   // Save the new user to the database
-//   newUser.save((err) => {
-//     if (err) {
-//       console.error('Error saving user:', err);
-//     } else {
-//       console.log('User saved successfully!');
-//     }
-//   });
-  
-  
-  
-  
-  
-
